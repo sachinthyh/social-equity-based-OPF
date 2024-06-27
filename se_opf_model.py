@@ -29,8 +29,8 @@ model.sigma = pe.Param(model.A)  # Weight factors: Socioeconomic Status (SES)
 model.a = pe.Param(model.G)
 model.b = pe.Param(model.G)
 model.c = pe.Param(model.G)  # Generator cost coefficients (quadratic cost function)
-model.gg = pe.Param(model.L)  # Line conductances
-model.bb = pe.Param(model.L)  # Line Susceptances
+model.gg = pe.Param(model.L)  # Line conductances (+self conductance)
+model.bb = pe.Param(model.L)  # Line Susceptances (+self susceptance)
 model.sl = pe.Param(model.L)  # Line limits
 model.v_max = pe.Param(initialize=1.05,mutable=False)  # Global upperbound for bus voltages (p.u.)
 model.v_min = pe.Param(initialize=-0.95,mutable=False)  # Global lowerbound for bus voltages (p.u.)
@@ -49,3 +49,19 @@ def obj_seopf_rule(model):
                - (model.a[g]*(model.p_gen[g])**2 + model.b[g]*model.p_gen[g] + model.c[g]) \
                for (d,a) in model.A for g in model.G)
 model.obj_seopf = pe.Objective(rule=obj_seopf_rule)
+
+# Constraints
+# Power Flow Equations
+def p_eqn_rule(model,i):
+    return model.p_gen[model.B[i]] - sum(model.p_a[i,a] for (i,a) in model.A) \
+        == model.v[i]*sum(model.v[j]*(model.gg[i,j]*pe.cos(model.t[i] - model.t[j]) \
+                                      + model.bb[i,j]*pe.sin(model.t[i] - model.t[j])) \
+                          for i in model.B for j in model.B)
+model.p_eqn = pe.Constraint(model.B, rule=p_eqn_rule)
+
+def q_eqn_rule(model,i):
+    return model.q_gen[model.B[i]] - sum(model.q_a[i, a] for (i, a) in model.A) \
+        == model.v[i] * sum(model.v[j] * (model.gg[i, j] * pe.sin(model.t[i] - model.t[j]) \
+                                          - model.bb[i, j] * pe.cos(model.t[i] - model.t[j])) \
+                            for i in model.B for j in model.B)
+model.q_eqn = pe.Constraint(model.B, rule=q_eqn_rule)
