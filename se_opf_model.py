@@ -52,16 +52,23 @@ model.obj_seopf = pe.Objective(rule=obj_seopf_rule)
 
 # Constraints
 # Power Flow Equations
-def p_eqn_rule(model,i):
+def p_eqn_rule(model, i):
     return model.p_gen[model.B[i]] - sum(model.p_a[i,a] for (i,a) in model.A) \
         == model.v[i]*sum(model.v[j]*(model.gg[i,j]*pe.cos(model.t[i] - model.t[j]) \
                                       + model.bb[i,j]*pe.sin(model.t[i] - model.t[j])) \
                           for i in model.B for j in model.B)
 model.p_eqn = pe.Constraint(model.B, rule=p_eqn_rule)
 
-def q_eqn_rule(model,i):
+def q_eqn_rule(model, i):
     return model.q_gen[model.B[i]] - sum(model.q_a[i, a] for (i, a) in model.A) \
-        == model.v[i] * sum(model.v[j] * (model.gg[i, j] * pe.sin(model.t[i] - model.t[j]) \
-                                          - model.bb[i, j] * pe.cos(model.t[i] - model.t[j])) \
+        == model.v[i]*sum(model.v[j]*(model.gg[i, j]*pe.sin(model.t[i] - model.t[j]) \
+                                          - model.bb[i, j]*pe.cos(model.t[i] - model.t[j])) \
                             for i in model.B for j in model.B)
 model.q_eqn = pe.Constraint(model.B, rule=q_eqn_rule)
+
+# Line Flow Limits
+def line_limit_rule(model, i, j):
+    return (((model.v[i])**2*model.gg[i] - model.v[i]*model.v[j]*(model.gg[i,j]*pe.cos(model.t[i] - model.t[j]) \
+                                                                 + model.bb[i,j]*pe.sin(model.t[i] - model.t[j])))**2 \
+            <= (model.sl[i,j])**2) if i < j else None
+model.line_limit = pe.Constraint(model.L, rule=line_limit_rule)
