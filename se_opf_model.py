@@ -42,3 +42,10 @@ model.p_a_max = pe.Param(model.A)
 model.p_a_min = pe.Param(model.A)
 model.q_a_max = pe.Param(model.A)
 model.q_a_min = pe.Param(model.A)  # Power limits of aggregators
+
+# Objective Function
+def obj_seopf_rule(model):
+    return sum(model.sigma[d,a]*(model.gamma[d,a]*(model.p_a[d,a])**2 - 0.5*model.mu[d,a]*model.p_a[d,a]) \
+               - (model.a[g]*(model.p_gen[g])**2 + model.b[g]*model.p_gen[g] + model.c[g]) \
+               for (d,a) in model.A for g in model.G)
+model.obj_seopf = pe.Objective(rule=obj_seopf_rule)
