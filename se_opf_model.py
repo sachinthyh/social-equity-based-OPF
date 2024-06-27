@@ -72,3 +72,26 @@ def line_limit_rule(model, i, j):
                                                                  + model.bb[i,j]*pe.sin(model.t[i] - model.t[j])))**2 \
             <= (model.sl[i,j])**2) if i < j else None
 model.line_limit = pe.Constraint(model.L, rule=line_limit_rule)
+
+# Bus Voltage Limits
+def bus_voltage_limit_rule(model, i):
+    return model.v_min <= model.v[i] <= model.v_max
+model.bus_voltage_limit = pe.Constraint(model.B, rule=bus_voltage_limit_rule)
+
+# Generator Dispatch Limits
+def gen_p_limit_rule(model, i):
+    return model.p_g_min[i] <= model.p_gen[i] <= model.p_g_max[i]
+model.gen_p_limit = pe.Constraint(model.G, rule=gen_p_limit_rule)
+
+def gen_q_limit_rule(model, i):
+    return model.q_g_min[i] <= model.q_gen[i] <= model.q_g_max[i]
+model.gen_q_limit = pe.Constraint(model.G, rule=gen_q_limit_rule)
+
+# Aggregator Power Limits
+def agg_p_limit_rule(model, i):
+    return model.p_a_min[i] <= model.p_a[i] <= model.p_a_max[i]
+model.agg_p_limit = pe.Constraint(model.A, rule=agg_p_limit_rule)
+
+def agg_q_limit_rule(model, i):
+    return model.q_a_min[i] <= model.q_a[i] <= model.q_a_max[i]
+model.agg_q_limit = pe.Constraint(model.A, rule=agg_q_limit_rule)
