@@ -9,7 +9,6 @@ model = pe.AbstractModel(name="seopf")
 # Declaring sets for variables
 model.B = pe.Set()  # Set of buses
 model.G = pe.Set()  # Set of generators (sub index of buses)
-model.D = pe.Set()  # Set of demands (sub index of buses)
 model.A = pe.Set()  # Set of aggregators: subsets indexed as (i,j) for each demand bus
 model.L = pe.Set()  # Set of lines: indexed as (i,j) where i≠j and preferably, i<j
 
@@ -26,9 +25,9 @@ model.p_l = pe.Var(model.L)  # Line power flows
 model.gamma = pe.Param(model.A)
 model.mu = pe.Param(model.A)  # Utility function coefficients
 model.sigma = pe.Param(model.A)  # Weight factors: Socioeconomic Status (SES)
-model.a = pe.Param(model.G)
-model.b = pe.Param(model.G)
-model.c = pe.Param(model.G)  # Generator cost coefficients (quadratic cost function)
+model.ag = pe.Param(model.G)
+model.bg = pe.Param(model.G)
+model.cg = pe.Param(model.G)  # Generator cost coefficients (quadratic cost function)
 model.gg = pe.Param(model.L)  # Line conductances (+self conductance)
 model.bb = pe.Param(model.L)  # Line Susceptances (+self susceptance)
 model.sl = pe.Param(model.L)  # Line limits
@@ -46,7 +45,7 @@ model.q_a_min = pe.Param(model.A)  # Power limits of aggregators
 # Objective Function
 def obj_seopf_rule(model):
     return sum(model.sigma[d,a]*(model.gamma[d,a]*(model.p_a[d,a])**2 - 0.5*model.mu[d,a]*model.p_a[d,a]) \
-               - (model.a[g]*(model.p_gen[g])**2 + model.b[g]*model.p_gen[g] + model.c[g]) \
+               - (model.ag[g]*(model.p_gen[g])**2 + model.bg[g]*model.p_gen[g] + model.cg[g]) \
                for (d,a) in model.A for g in model.G)
 model.obj_seopf = pe.Objective(rule=obj_seopf_rule)
 
