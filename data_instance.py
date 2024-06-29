@@ -11,9 +11,9 @@ def load_sets_params(filename):
 set_names = ['B', 'G', 'L', 'A']
 param_names = ['gamma', 'mu', 'sigma', \
                    'ag', 'bg', 'cg', \
-                   'gg', 'bb', 'sl', 'p_g_max', \
-                   'p_g_min', 'q_g_max', 'q_g_min', \
-                   'p_a_max', 'p_a_min', 'q_a_max', 'q_a_min']
+                   'gg', 'bb', 'sl', \
+               'p_g_max', 'p_g_min', 'q_g_max', 'q_g_min', \
+               'p_a_max', 'p_a_min', 'q_a_max', 'q_a_min']
 
 # Loading data stored in Data/Parameters
 sets = [load_sets_params(s) for s in set_names]

@@ -2,7 +2,7 @@
 # importing necessary libraries and packages
 import pyomo.environ as pe
 # importing data processing file
-import data_instance
+import data_instance as di
 
 model = pe.AbstractModel(name="seopf")
 
