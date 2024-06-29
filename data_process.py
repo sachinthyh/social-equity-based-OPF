@@ -62,7 +62,6 @@ admittance = np.divide(1, (df_line_raw['r'] + df_line_raw['x']*cplx))
 df_line_raw['gg'] = np.real(admittance)
 df_line_raw['bb'] = np.imag(admittance)
 
-
 for i in df_line_raw.index:  # Combining double-circuit lines to single lines
     for double_line in double_lines:
         if (double_line[0] == df_line_raw.loc[i, 'From']) and (double_line[1] == df_line_raw.loc[i, 'To']):
@@ -73,6 +72,41 @@ for i in df_line_raw.index:  # Combining double-circuit lines to single lines
             df_line_raw.loc[i, 'bb'] = 2*df_line_raw.loc[i, 'bb']
 
 df_line_raw = df_line_raw.drop_duplicates()  # Dropping duplicate rows
+
+# Calculating Diagonal Elements of the Conductance and Susceptance Matrices
+df_self_conductance = df_line_raw.groupby("From")['gg'].sum().reset_index()
+dictselfgg = dict()
+for index, row in df_self_conductance.iterrows():
+    dictselfgg[int(row['From'])] = row['gg']
+
+df_self_conductance = df_line_raw.groupby("To")['gg'].sum().reset_index()
+for index, row in df_self_conductance.iterrows():
+    key = row['To']
+    value = row['gg']
+
+    if key not in dictselfgg:
+        dictselfgg[key] = value
+    else:
+        pass
+
+df_self_susceptance = df_line_raw.groupby("From")['bb'].sum().reset_index()
+dictselfbb = dict()
+for index, row in df_self_susceptance.iterrows():
+    dictselfbb[int(row['From'])] = row['bb']
+
+df_self_susceptance = df_line_raw.groupby("To")['bb'].sum().reset_index()
+for index, row in df_self_susceptance.iterrows():
+    key = row['To']
+    value = row['bb']
+
+    if key not in dictselfbb:
+        dictselfbb[key] = value
+    else:
+        pass
+
+# Diagonal elements of the admittance matrix
+selfgg = {(key, key): value for key, value in dictselfgg.items()}
+selfbb = {(key, key): value for key, value in dictselfbb.items()}
 
 
 def dict_gen(df, firstindex, secondindex, paramname):  # Creating dict-like structures to hold parameters
@@ -105,6 +139,24 @@ for i in range(len(set_names)):
 for i in range(len(dict_names)):
     pickle_gen(dict_names[i], dicts[i])
 
+# Importing conductance and susceptance dictionaries, in which the diagonal elements were missing.
+with open('Data/Parameters/gg.pkl', 'rb') as f:
+    gg_old = pickle.load(f)
+
+with open('Data/Parameters/bb.pkl', 'rb') as f:
+    bb_old = pickle.load(f)
+
+gg_old.update(selfgg)
+bb_old.update(selfbb)
+gg_new = dict(sorted(gg_old.items()))
+bb_new = dict(sorted(bb_old.items()))
+
+# Exporting final conductance and susceptance dictionaries
+with open('Data/Parameters/gg.pkl', 'wb') as f:
+    pickle.dump(gg_new, f)
+
+with open('Data/Parameters/bb.pkl', 'wb') as f:
+    pickle.dump(bb_new, f)
 
 # Optional Code for Aggregator Data Synthesis
 # Synthesizing Aggregator Load Proportions
