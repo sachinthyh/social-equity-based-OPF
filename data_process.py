@@ -47,15 +47,14 @@ for i in df_line_raw.index:
     line = (df_line_raw.loc[i, 'From'], df_line_raw.loc[i, 'To'])
     L.append(line)
 
-indexset = [B, G, A, L]
-
-
 double_lines = []
 for line in L:  # Combining double-circuit lines for analyses
     if L.count(line) != 1:
         double_lines.append(line)
 double_lines = list(set(double_lines))
 L = set(L)
+
+indexset = [B, G, A, L]
 
 cplx = 1j  # Sqrt of 1
 admittance = np.divide(1, (df_line_raw['r'] + df_line_raw['x']*cplx))
@@ -80,8 +79,8 @@ def dict_gen(df, firstindex, secondindex, paramname):  # Creating dict-like stru
 
 
 def pickle_gen(paramname, param):  # Exporting sets and dictionaries as pickle files (.pkl)
-    with open('Data/Parameters/' + paramname + '.pkl', 'wb') as f:
-        pickle.dump(param, f)
+    with open('Data/Parameters/' + paramname + '.pkl', 'wb') as filepush:
+        pickle.dump(param, filepush)
 
 
 # Lists of dictionaries
@@ -104,3 +103,45 @@ for i in range(len(set_names)):
 # Exporting dictionaries
 for i in range(len(dict_names)):
     pickle_gen(dict_names[i], dicts[i])
+
+with open('Data/Parameters/sl.pkl', 'rb') as f:
+    loadedone = pickle.load(f)
+
+print(loadedone)
+print('size of the loaded element is', len(loadedone))
+
+# Optional Code for Aggregator Data Synthesis
+# Synthesizing Aggregator Load Proportions
+'''
+# This is a multiline comment. Uncomment if necessary
+aggr_prop = []
+for i in df_load_raw.index:
+    temp = []
+    for j in range(0, df_load_raw.loc[i, 'Aggr']):
+        if j != df_load_raw.loc[i, 'Aggr'] - 1:
+            temp.append(np.random.uniform(0.2,0.45))
+        else:
+            temp.append(1-sum(temp))
+    aggr_prop.append(temp)
+aggr_prop = [i for aggr in aggr_prop for i in aggr]
+df_aggr_raw["Pnom"] = np.ceil(aggr_prop*df_aggr_raw["P"]).astype(int)
+df_aggr_raw["Qnom"] = np.ceil(aggr_prop*df_aggr_raw["Q"]).astype(int)
+df_aggr_raw.drop(['P', 'Q'], axis=1, inplace=True)
+# Setting critical load and normal operation load for aggregators
+df_aggr_raw["Pmax"] = np.ceil(1.15*df_aggr_raw["Pnom"]).astype(int)
+df_aggr_raw["Pmin"] = np.floor(.7*df_aggr_raw["Pnom"]).astype(int)
+df_aggr_raw["Qmax"] = np.ceil(1.15*df_aggr_raw["Qnom"]).astype(int)
+df_aggr_raw["Qmin"] = np.floor(0.7*df_aggr_raw["Qnom"]).astype(int)
+df_aggr_raw.drop(["Pnom", "Qnom"], axis=1, inplace=True)
+df_aggr_raw.to_csv('Data/aggr_raw_limits.csv', index=False)
+'''
+# Synthesizing Socioeconomic Scores of Aggregators
+'''
+# This is a multiline comment. Uncomment if necessary
+df_aggr_raw = pd.read_csv('Data/aggr_raw_limits.csv', index_col=0)
+df_aggr_raw
+randses = np.random.randint(10, 110, size=len(df_aggr_raw["Mu"]), dtype=int)
+randses
+df_aggr_raw["Sigma"] = randses
+df_aggr_raw.to_csv('Data/ieee24rts_aggregators.csv', index=False)
+'''
