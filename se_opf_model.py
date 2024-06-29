@@ -1,8 +1,6 @@
 # Implementation of Social Equity driven OPF
 # importing necessary libraries and packages
 import pyomo.environ as pe
-# importing data processing file
-import data_instance as di
 
 model = pe.AbstractModel(name="seopf")
 
@@ -94,5 +92,3 @@ model.agg_p_limit = pe.Constraint(model.A, rule=agg_p_limit_rule)
 def agg_q_limit_rule(model, i):
     return model.q_a_min[i] <= model.q_a[i] <= model.q_a_max[i]
 model.agg_q_limit = pe.Constraint(model.A, rule=agg_q_limit_rule)
-
-# Getting the data instance
