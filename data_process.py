@@ -27,19 +27,19 @@ dict_names = sum([param_names_gen, param_names_line, param_names_aggr], [])  # A
 
 
 # Set creation B, G, A, L
-B = set()
+B = []
 for i in range(1, 25):  # 24 bus system
-    B.add(i)
+    B.append(i)
 
-G = set()
+G = []
 for i in df_gen_raw.index:
     gen = (df_gen_raw.loc[i, 'Bus'], df_gen_raw.loc[i, 'Generator'])
-    G.add(gen)
+    G.append(gen)
 
-A = set()
+A = []
 for i in df_aggr_final.index:
     agg = (df_aggr_final.loc[i, 'Bus'], df_aggr_final.loc[i, 'Aggregator'])
-    A.add(agg)
+    A.append(agg)
 
 # Including double-circuit lines. May be identified by as duplicates, hence be dropped by sets and other issues.
 L = []
@@ -52,7 +52,8 @@ for line in L:  # Combining double-circuit lines for analyses
     if L.count(line) != 1:
         double_lines.append(line)
 double_lines = list(set(double_lines))
-L = set(L)
+
+L = list(dict.fromkeys(L))  # Dropping duplicates corresponding to double-circuits
 
 indexset = [B, G, A, L]
 
@@ -104,11 +105,6 @@ for i in range(len(set_names)):
 for i in range(len(dict_names)):
     pickle_gen(dict_names[i], dicts[i])
 
-with open('Data/Parameters/sl.pkl', 'rb') as f:
-    loadedone = pickle.load(f)
-
-print(loadedone)
-print('size of the loaded element is', len(loadedone))
 
 # Optional Code for Aggregator Data Synthesis
 # Synthesizing Aggregator Load Proportions
