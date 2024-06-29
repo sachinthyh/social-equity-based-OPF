@@ -19,6 +19,16 @@ param_names = ['gamma', 'mu', 'sigma', \
 sets = [load_sets_params(s) for s in set_names]
 params = [load_sets_params(p) for p in param_names]
 
+# Initializing the data dictionary
+data_instance = {None:{}}
+
 # Function to create the instance for the abstract model
-def create_data_instance(set_names, sets, param_names, params):
-    return None
+def create_data_instance_sets(data_instance, values, names):
+    for value, name in zip(values, names):
+        data_instance[None][name] = {None: list(value) if len(value) > 1 else list(name)[0]}
+
+def create_data_instance_params(data_instance, values, names):
+    for value, name in zip(values, names):
+        data_instance[None][name] = value
+
+
