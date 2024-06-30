@@ -23,6 +23,7 @@ param_names_line_col_names = ['gg', 'bb', 'Smax']
 param_names_aggr = ['gamma', 'mu', 'sigma', 'p_a_max', 'p_a_min', 'q_a_max', 'q_a_min']
 param_names_aggr_col_names = ['Gamma', 'Mu', 'Sigma', 'Pmax', 'Pmin', 'Qmax', 'Qmin']
 
+
 dict_names = sum([param_names_gen, param_names_line, param_names_aggr], [])  # All parameter names in a single list
 
 
