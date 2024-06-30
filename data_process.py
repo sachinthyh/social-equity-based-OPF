@@ -151,12 +151,21 @@ bb_old.update(selfbb)
 gg_new = dict(sorted(gg_old.items()))
 bb_new = dict(sorted(bb_old.items()))
 
-# Exporting final conductance and susceptance dictionaries
+# Set of Admittances
+Y = list(gg_new.keys())
+
+# Exporting final conductance and susceptance dictionaries, along with the set of admittances
 with open('Data/Parameters/gg.pkl', 'wb') as f:
     pickle.dump(gg_new, f)
 
 with open('Data/Parameters/bb.pkl', 'wb') as f:
     pickle.dump(bb_new, f)
+
+with open('Data/Parameters/Y.pkl', 'wb') as f:
+    pickle.dump(Y, f)
+
+
+
 
 # Optional Code for Aggregator Data Synthesis
 # Synthesizing Aggregator Load Proportions
