@@ -55,6 +55,7 @@ def obj_seopf_rule(model):
     return obj_sum
 model.obj_seopf = pe.Objective(rule=obj_seopf_rule)
 '''
+
 def obj_seopf_rule(model):
     obj_sum = sum(
         model.sigma[d, a] * (model.gamma[d, a] * (model.p_a[d, a] / 100)**2 
@@ -68,7 +69,6 @@ def obj_seopf_rule(model):
     return obj_sum
 
 model.obj_seopf = pe.Objective(rule=obj_seopf_rule)
-
 
 # Constraints
 # Power Flow Equations
@@ -87,7 +87,7 @@ def p_eqn_rule(model, i):
                                if ((i < j) and ((i,j) in model.Y))
                                else model.v[j]*(model.gg[j, i]*pe.cos(model.t[i] - model.t[j])
                                           + model.bb[j, i]*pe.sin(model.t[i] - model.t[j]))
-                    if ((i > j) and ((j,i) in model.Y))
+                    if ((i >= j) and ((j,i) in model.Y))
     else 0
                                for i in model.B for j in model.B)
     return (left_sum == right_sum)
@@ -122,29 +122,47 @@ def line_limit_rule(model, i, j):
 model.line_limit = pe.Constraint(model.L, rule=line_limit_rule)
 
 # Bus Voltage Limits
-def bus_voltage_limit_rule(model, i):
-    return model.v[i] >= model.v_max
-model.bus_voltage_limit = pe.Constraint(model.B, rule=bus_voltage_limit_rule)
+def bus_voltage_max_limit_rule(model, i):
+    return model.v[i] <= model.v_max
+model.bus_voltage_max_limit = pe.Constraint(model.B, rule=bus_voltage_max_limit_rule)
 
+def bus_voltage_min_limit_rule(model, i):
+    return model.v[i] >= model.v_min
+model.bus_voltage_min_limit = pe.Constraint(model.B, rule=bus_voltage_min_limit_rule)
 
 # Generator Dispatch Limits
-def gen_p_limit_rule(model, i, j):
+def gen_p_max_limit_rule(model, i, j):
     return model.p_gen[i,j] <= model.p_g_max[i,j]
-model.gen_p_limit = pe.Constraint(model.G, rule=gen_p_limit_rule)
+model.gen_p_max_limit = pe.Constraint(model.G, rule=gen_p_max_limit_rule)
 
-def gen_q_limit_rule(model, i, j):
+def gen_p_min_limit_rule(model, i, j):
+    return model.p_gen[i,j] >= model.p_g_min[i,j]
+model.gen_p_min_limit = pe.Constraint(model.G, rule=gen_p_min_limit_rule)
+
+def gen_q_max_limit_rule(model, i, j):
     return model.q_gen[i,j] <= model.q_g_max[i,j]
-model.gen_q_limit = pe.Constraint(model.G, rule=gen_q_limit_rule)
+model.gen_q_max_limit = pe.Constraint(model.G, rule=gen_q_max_limit_rule)
+
+def gen_q_min_limit_rule(model, i, j):
+    return model.q_gen[i,j] >= model.q_g_min[i,j]
+model.gen_q_min_limit = pe.Constraint(model.G, rule=gen_q_min_limit_rule)
 
 # Aggregator Power Limits
-def agg_p_limit_rule(model, i, j):
+def agg_p_max_limit_rule(model, i, j):
     return model.p_a[i,j] <= model.p_a_max[i,j]
-model.agg_p_limit = pe.Constraint(model.A, rule=agg_p_limit_rule)
+model.agg_p_max_limit = pe.Constraint(model.A, rule=agg_p_max_limit_rule)
 
-def agg_q_limit_rule(model, i, j):
+def agg_p_min_limit_rule(model, i, j):
+    return model.p_a[i,j] >= model.p_a_min[i,j]
+model.agg_p_min_limit = pe.Constraint(model.A, rule=agg_p_min_limit_rule)
+
+def agg_q_max_limit_rule(model, i, j):
     return model.q_a[i,j] <= model.q_a_max[i,j]
-model.agg_q_limit = pe.Constraint(model.A, rule=agg_q_limit_rule)
+model.agg_q_max_limit = pe.Constraint(model.A, rule=agg_q_max_limit_rule)
+
+def agg_q_min_limit_rule(model, i, j):
+    return model.q_a[i,j] >= model.q_a_min[i,j]
+model.agg_q_min_limit = pe.Constraint(model.A, rule=agg_q_min_limit_rule)
 
 def create_pyomo_instance(model, data):
     return model.create_instance(data)
-
