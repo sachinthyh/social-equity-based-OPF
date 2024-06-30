@@ -63,15 +63,15 @@ def p_eqn_rule(model, i):
     left_sum += sum(-(model.p_a[b, a]/100)
                    for (b,a) in model.A
                    if (b == i))
-    right_sum = model.v[i]*sum(model.v[j]*(model.gg[b, j]*pe.cos(model.t[b] - model.t[j])
+    right_sum = sum(model.v[i]*model.v[j]*(model.gg[b, j]*pe.cos(model.t[b] - model.t[j])
                                           + model.bb[b, j]*pe.sin(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b < j) and ((b,j) in model.Y) and (b == i))
-    right_sum += model.v[i]*sum(model.v[j]*(model.gg[j, b]*pe.cos(model.t[b] - model.t[j])
+    right_sum += sum(model.v[i]*model.v[j]*(model.gg[j, b]*pe.cos(model.t[b] - model.t[j])
                                           + model.bb[j, b]*pe.sin(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b > j) and ((j,b) in model.Y) and (b == i))
-    right_sum += model.v[i]*sum(model.v[j]*(model.gg[j, b]*pe.cos(model.t[b] - model.t[j])
+    right_sum += sum(model.v[i]*model.v[j]*(model.gg[j, b]*pe.cos(model.t[b] - model.t[j])
                                           + model.bb[j, b]*pe.sin(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b == j) and ((b,j) in model.Y) and (b == i))
@@ -85,15 +85,15 @@ def q_eqn_rule(model, i):
     left_sum += sum(-(model.q_a[b, a]/100)
                    for (b,a) in model.A
                    if (b == i))
-    right_sum = model.v[i]*sum(model.v[j]*(model.gg[b, j]*pe.sin(model.t[b] - model.t[j])
+    right_sum = sum(model.v[i]*model.v[j]*(model.gg[b, j]*pe.sin(model.t[b] - model.t[j])
                                            - model.bb[b, j]*pe.cos(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b < j) and ((b,j) in model.Y) and (b == i))
-    right_sum += model.v[i]*sum(model.v[j]*(model.gg[j, b]*pe.sin(model.t[b] - model.t[j])
+    right_sum += sum(model.v[i]*model.v[j]*(model.gg[j, b]*pe.sin(model.t[b] - model.t[j])
                                           - model.bb[j, b]*pe.cos(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b > j) and ((j,b) in model.Y) and (b == i))
-    right_sum += model.v[i]*sum(model.v[j]*(model.gg[j, b]*pe.sin(model.t[b] - model.t[j])
+    right_sum += sum(model.v[i]*model.v[j]*(model.gg[j, b]*pe.sin(model.t[b] - model.t[j])
                                           - model.bb[j, b]*pe.cos(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b == j) and ((b,j) in model.Y) and (b == i))
