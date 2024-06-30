@@ -11,7 +11,7 @@ def load_sets_params(filename):
 
 
 # Names of sets and parameters
-set_names = ['B', 'G', 'L', 'A']
+set_names = ['B', 'G', 'L', 'A', 'Y']
 param_names = ['gamma', 'mu', 'sigma',
                'ag', 'bg', 'cg',
                'gg', 'bb', 'sl',
