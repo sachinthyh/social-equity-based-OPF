@@ -6,7 +6,7 @@ import run_seopf as ropf
 # Importing the Data Instance
 model = se.model
 data = di.instance_data
-
+print(di.instance_data)
 # Creating Instance
 model_instance = se.create_pyomo_instance(model, data)
 model_instance.pprint()
