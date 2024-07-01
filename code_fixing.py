@@ -1,14 +1,4 @@
-def obj_seopf_rule(model):
-    obj_sum = sum(model.sigma[d,a]*(model.gamma[d,a]*(model.p_a[d,a])**2 - 0.5*model.mu[d,a]*model.p_a[d,a])
-                  for (d, a) in model.A
-                  if ((model.p_a[d,a]) <= model.gamma[d,a]/model.mu[d,a]))
-    obj_sum += sum(0.5*(model.gamma[d,a])**2/model.mu[d,a]
-                   for (d, a) in model.A
-                   if ((model.p_a[d,a]) > model.gamma[d,a]/model.mu[d,a]))
-    obj_sum -= sum(model.ag[b,g]*(model.p_gen[b,g])**2 + model.bg[b,g]*model.p_gen[b,g] + model.cg[b,g]
-               for (b,g) in model.G)
-    return obj_sum
-model.obj_seopf = pe.Objective(rule=obj_seopf_rule)
+(left_sum == right_sum if i != 1 else pe.Constraint.Skip)
 
 # LATEST PQ OKAY
 def p_eqn_rule(model, i):  # Fully fixed

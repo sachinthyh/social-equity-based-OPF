@@ -52,7 +52,7 @@ def obj_seopf_rule(model):
         for (b, g) in model.G
     )
     return obj_sum
-model.obj_seopf = pe.Objective(rule=obj_seopf_rule)
+model.obj_seopf = pe.Objective(rule=obj_seopf_rule, sense=pe.maximize)
 
 # Constraints
 # Power Flow Equations
@@ -75,7 +75,7 @@ def p_eqn_rule(model, i):
                                           + model.bb[j, b]*pe.sin(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b == j) and ((b,j) in model.Y) and (b == i))
-    return left_sum == right_sum
+    return (left_sum == right_sum if i != 1 else pe.Constraint.Skip)
 model.p_eqn = pe.Constraint(model.B, rule=p_eqn_rule)
 
 def q_eqn_rule(model, i):
@@ -97,7 +97,7 @@ def q_eqn_rule(model, i):
                                           - model.bb[j, b]*pe.cos(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b == j) and ((b,j) in model.Y) and (b == i))
-    return left_sum == right_sum
+    return (left_sum == right_sum if i != 1 else pe.Constraint.Skip)
 model.q_eqn = pe.Constraint(model.B, rule=q_eqn_rule)
 
 # Line Flow Limits
