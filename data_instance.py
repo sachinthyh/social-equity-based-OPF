@@ -2,8 +2,6 @@
 import pickle
 
 # Loading data stored in .pkl files
-
-
 def load_sets_params(filename):
     with open('Data/Parameters/' + filename + '.pkl', 'rb') as f:
         pkl_data = pickle.load(f)
