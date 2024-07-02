@@ -76,11 +76,13 @@ df_line_raw = df_line_raw.drop_duplicates()  # Dropping duplicate rows
 
 # Calculating Diagonal Elements of the Conductance and Susceptance Matrices
 df_self_conductance = df_line_raw.groupby("From")['gg'].sum().reset_index()
+df_self_conductance['gg'] = -df_self_conductance['gg']  # Correcting the sign
 dictselfgg = dict()
 for index, row in df_self_conductance.iterrows():
     dictselfgg[int(row['From'])] = row['gg']
 
 df_self_conductance = df_line_raw.groupby("To")['gg'].sum().reset_index()
+df_self_conductance['gg'] = -df_self_conductance['gg']  # Correcting the sign
 for index, row in df_self_conductance.iterrows():
     key = row['To']
     value = row['gg']
@@ -91,11 +93,13 @@ for index, row in df_self_conductance.iterrows():
         pass
 
 df_self_susceptance = df_line_raw.groupby("From")['bb'].sum().reset_index()
+df_self_susceptance['bb'] = -df_self_susceptance['bb']  # Correcting the sign
 dictselfbb = dict()
 for index, row in df_self_susceptance.iterrows():
     dictselfbb[int(row['From'])] = row['bb']
 
 df_self_susceptance = df_line_raw.groupby("To")['bb'].sum().reset_index()
+df_self_susceptance['bb'] = -df_self_susceptance['bb']  # Correcting the sign
 for index, row in df_self_susceptance.iterrows():
     key = row['To']
     value = row['bb']
