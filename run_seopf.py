@@ -25,4 +25,4 @@ model_instance.v[1].fix(1.05)
 model_instance.t[1].fix(0)
 model_instance.pprint()
 
-run_opf(model, data)
+# run_opf(model, data)

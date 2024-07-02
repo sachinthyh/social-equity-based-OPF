@@ -74,15 +74,19 @@ for i in df_line_raw.index:  # Combining double-circuit lines to single lines
 
 df_line_raw = df_line_raw.drop_duplicates()  # Dropping duplicate rows
 
-# Calculating Diagonal Elements of the Conductance and Susceptance Matrices
+# Dealing with the leakage conductances and leakage susceptances. i.e., gg[i, i] and bb[i, i]
 df_self_conductance = df_line_raw.groupby("From")['gg'].sum().reset_index()
-df_self_conductance['gg'] = -df_self_conductance['gg']  # Correcting the sign
+df_self_conductance['gg'] = 0
+''' Neglecting the leakage conductance at each bus. If any present, replace 0 with the
+vector of leakage conductances'''
 dictselfgg = dict()
 for index, row in df_self_conductance.iterrows():
     dictselfgg[int(row['From'])] = row['gg']
 
 df_self_conductance = df_line_raw.groupby("To")['gg'].sum().reset_index()
-df_self_conductance['gg'] = -df_self_conductance['gg']  # Correcting the sign
+df_self_conductance['gg'] = 0
+''' Neglecting the leakage conductance at each bus. If any present, replace 0 with the
+vector of leakage conductances'''
 for index, row in df_self_conductance.iterrows():
     key = row['To']
     value = row['gg']
@@ -93,13 +97,17 @@ for index, row in df_self_conductance.iterrows():
         pass
 
 df_self_susceptance = df_line_raw.groupby("From")['bb'].sum().reset_index()
-df_self_susceptance['bb'] = -df_self_susceptance['bb']  # Correcting the sign
+df_self_susceptance['bb'] = 0
+''' Neglecting the leakage susceptance at each bus. If any present, replace 0 with the
+vector of leakage susceptances'''
 dictselfbb = dict()
 for index, row in df_self_susceptance.iterrows():
     dictselfbb[int(row['From'])] = row['bb']
 
 df_self_susceptance = df_line_raw.groupby("To")['bb'].sum().reset_index()
-df_self_susceptance['bb'] = -df_self_susceptance['bb']  # Correcting the sign
+df_self_susceptance['bb'] = 0
+''' Neglecting the leakage susceptance at each bus. If any present, replace 0 with the
+vector of leakage susceptances'''
 for index, row in df_self_susceptance.iterrows():
     key = row['To']
     value = row['bb']
@@ -112,7 +120,8 @@ for index, row in df_self_susceptance.iterrows():
 # Diagonal elements of the admittance matrix
 selfgg = {(key, key): value for key, value in dictselfgg.items()}
 selfbb = {(key, key): value for key, value in dictselfbb.items()}
-
+print(selfgg)
+print(selfbb)
 
 def dict_gen(df, firstindex, secondindex, paramname):  # Creating dict-like structures to hold parameters
     return df.pivot_table(index=firstindex, columns=secondindex, values=paramname).stack().to_dict()
