@@ -9,7 +9,8 @@ model.B = pe.Set()  # Set of buses
 model.G = pe.Set()  # Set of generators (sub index of buses)
 model.A = pe.Set()  # Set of aggregators: subsets indexed as (i,j) for each demand bus
 model.L = pe.Set()  # Set of lines: indexed as (i,j) where i≠j and preferably, i<j
-model.Y = pe.Set() # Set of Admittances
+model.Y = pe.Set()  # Set of Admittances
+model.GB = pe.Set()  # Set of generator buses
 
 # Declaring variables
 model.v = pe.Var(model.B)  # Bus voltages
@@ -39,14 +40,14 @@ model.p_a_max = pe.Param(model.A)
 model.p_a_min = pe.Param(model.A)
 model.q_a_max = pe.Param(model.A)
 model.q_a_min = pe.Param(model.A)  # Power limits of aggregators
+model.vg = pe.Param(model.GB)  # Voltages at generator buses
 
 # Objective Function
 def obj_seopf_rule(model):
-    obj_sum = sum(model.sigma[d, a] * (model.gamma[d, a] * model.p_a[d, a]
-                  - 0.5 * model.mu[d, a] * (model.p_a[d, a])**2)
+    obj_sum = sum(model.sigma[d, a]*(model.gamma[d, a] * model.p_a[d, a] - 0.5*model.mu[d, a]*(model.p_a[d, a])**2)
                   for (d, a) in model.A)
-    obj_sum -= sum(model.ag[b, g] * (model.p_gen[b, g])**2 + model.bg[b, g] * model.p_gen[b, g] + model.cg[b, g]
-    for (b, g) in model.G)
+    obj_sum -= sum(model.ag[b, g]*(model.p_gen[b, g])**2 + model.bg[b, g]*model.p_gen[b, g] + model.cg[b, g]
+                   for (b, g) in model.G)
     return obj_sum
 model.obj_seopf = pe.Objective(rule=obj_seopf_rule, sense=pe.maximize)
 
@@ -125,6 +126,7 @@ model.agg_p_limit = pe.Constraint(model.A, rule=agg_p_limit_rule)
 def agg_q_limit_rule(model, i, j):
     return (model.q_a_min[i, j], model.q_a[i, j], model.q_a_max[i, j])
 model.agg_q_limit = pe.Constraint(model.A, rule=agg_q_limit_rule)
+
 
 def create_pyomo_instance(model, data):  # Creting the instance for the abstract model.
     return model.create_instance(data)

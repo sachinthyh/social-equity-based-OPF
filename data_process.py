@@ -11,8 +11,9 @@ df_aggr_raw = pd.read_csv('Data/ieee24rts_aggrs.csv', index_col=False)
 df_aggr_final = pd.read_csv('Data/ieee24rts_aggregators.csv', index_col=False)
 df_aggr_final["Bus"] = df_aggr_raw["Bus"]
 df_aggr_final.insert(0, "Bus", df_aggr_final.pop("Bus"))
+df_bus_raw = pd.read_csv('Data/ieee24rts_buses.csv', index_col=False)
 
-set_names = ['B', 'G', 'A', 'L']
+set_names = ['B', 'G', 'A', 'L', 'GB']
 
 param_names_gen = ['ag', 'bg', 'cg', 'p_g_max', 'p_g_min', 'q_g_max', 'q_g_min']
 param_names_gen_col_names = ['a', 'b', 'c', 'Pmax', 'Pmin', 'Qmax', 'Qmin']  # DataFrame column names
@@ -23,11 +24,15 @@ param_names_line_col_names = ['gg', 'bb', 'Smax']
 param_names_aggr = ['gamma', 'mu', 'sigma', 'p_a_max', 'p_a_min', 'q_a_max', 'q_a_min']
 param_names_aggr_col_names = ['Gamma', 'Mu', 'Sigma', 'Pmax', 'Pmin', 'Qmax', 'Qmin']
 
+param_names_genbus = ['vg']
+param_names_genbus_col_names = ['Vg']  # This is needed for usual power flow analysis. Not necessary for OPF.
 
-dict_names = sum([param_names_gen, param_names_line, param_names_aggr], [])  # All parameter names in a single list
+# All parameter names in a single list
+dict_names = sum([param_names_gen, param_names_line, param_names_aggr, param_names_genbus], [])
 
 
-# Set creation B, G, A, L
+
+# Set creation B, G, A, L, GB
 B = []
 for i in range(1, 25):  # 24 bus system
     B.append(i)
@@ -48,6 +53,14 @@ for i in df_line_raw.index:
     line = (df_line_raw.loc[i, 'From'], df_line_raw.loc[i, 'To'])
     L.append(line)
 
+# Generator Buses
+df_genbus = df_gen_raw.drop_duplicates(subset=['Bus']).reset_index(drop=True)
+
+GB = []
+for i in df_genbus.index:
+    bus = df_genbus.loc[i, 'Bus']
+    GB.append(bus)
+
 double_lines = []
 for line in L:  # Combining double-circuit lines for analyses
     if L.count(line) != 1:
@@ -56,12 +69,12 @@ double_lines = list(set(double_lines))
 
 L = list(dict.fromkeys(L))  # Dropping duplicates corresponding to double-circuits
 
-indexset = [B, G, A, L]
+indexset = [B, G, A, L, GB]
 
 cplx = 1j  # Sqrt of 1
 admittance = np.divide(1, (df_line_raw['r'] + df_line_raw['x']*cplx))
-df_line_raw['gg'] = np.real(admittance)
-df_line_raw['bb'] = np.imag(admittance)
+df_line_raw['gg'] = -np.real(admittance)
+df_line_raw['bb'] = -np.imag(admittance)
 
 for i in df_line_raw.index:  # Combining double-circuit lines to single lines
     for double_line in double_lines:
@@ -76,20 +89,16 @@ df_line_raw = df_line_raw.drop_duplicates()  # Dropping duplicate rows
 
 # Dealing with the leakage conductances and leakage susceptances. i.e., gg[i, i] and bb[i, i]
 df_self_conductance = df_line_raw.groupby("From")['gg'].sum().reset_index()
-df_self_conductance['gg'] = 0
-''' Neglecting the leakage conductance at each bus. If any present, replace 0 with the
-vector of leakage conductances'''
+
 dictselfgg = dict()
 for index, row in df_self_conductance.iterrows():
-    dictselfgg[int(row['From'])] = row['gg']
+    dictselfgg[int(row['From'])] = -row['gg']
 
 df_self_conductance = df_line_raw.groupby("To")['gg'].sum().reset_index()
-df_self_conductance['gg'] = 0
-''' Neglecting the leakage conductance at each bus. If any present, replace 0 with the
-vector of leakage conductances'''
+
 for index, row in df_self_conductance.iterrows():
     key = row['To']
-    value = row['gg']
+    value = -row['gg']
 
     if key not in dictselfgg:
         dictselfgg[key] = value
@@ -97,31 +106,32 @@ for index, row in df_self_conductance.iterrows():
         pass
 
 df_self_susceptance = df_line_raw.groupby("From")['bb'].sum().reset_index()
-df_self_susceptance['bb'] = 0
-''' Neglecting the leakage susceptance at each bus. If any present, replace 0 with the
-vector of leakage susceptances'''
+
 dictselfbb = dict()
 for index, row in df_self_susceptance.iterrows():
-    dictselfbb[int(row['From'])] = row['bb']
+    dictselfbb[int(row['From'])] = -row['bb']
 
 df_self_susceptance = df_line_raw.groupby("To")['bb'].sum().reset_index()
-df_self_susceptance['bb'] = 0
-''' Neglecting the leakage susceptance at each bus. If any present, replace 0 with the
-vector of leakage susceptances'''
+
 for index, row in df_self_susceptance.iterrows():
     key = row['To']
-    value = row['bb']
+    value = -row['bb']
 
     if key not in dictselfbb:
         dictselfbb[key] = value
     else:
         pass
 
-# Diagonal elements of the admittance matrix
+# Adding leakage conductance and susceptance values to G(i,i) and B(i,i) elements
+for index, row in df_bus_raw.iterrows():
+    for key in dictselfgg:
+        if row['Bus'] == key:
+            dictselfgg[key] += row['Gs']
+            dictselfbb[key] += row['Bs']
+
+# Final G(i,i) and B(i,i)
 selfgg = {(key, key): value for key, value in dictselfgg.items()}
 selfbb = {(key, key): value for key, value in dictselfbb.items()}
-print(selfgg)
-print(selfbb)
 
 def dict_gen(df, firstindex, secondindex, paramname):  # Creating dict-like structures to hold parameters
     return df.pivot_table(index=firstindex, columns=secondindex, values=paramname).stack().to_dict()
@@ -142,8 +152,10 @@ dicts_line = [dict_gen(df_line_raw, 'From', 'To', paramname)
 dicts_aggr = [dict_gen(df_aggr_final, 'Bus', "Aggregator", paramname)
               for paramname in param_names_aggr_col_names]
 
+dicts_genbus = [{df_genbus.loc[i, 'Bus'] : df_genbus.loc[i, 'Vg'] for i in range(len(df_genbus['Bus']))}]
+
 # Concatenating all lists into one
-dicts = sum([dicts_gen, dicts_line, dicts_aggr], [])
+dicts = sum([dicts_gen, dicts_line, dicts_aggr, dicts_genbus], [])
 
 # Exporting sets (index)
 for i in range(len(set_names)):

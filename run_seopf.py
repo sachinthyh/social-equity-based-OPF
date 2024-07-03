@@ -9,20 +9,19 @@ import pyomo.environ as pe
 model = se.model
 data = di.instance_data
 
-def run_opf(model, data):
-    model_instance = se.create_pyomo_instance(model, data)
-    # Fixing the voltage and angle of slack bus
-    model_instance.v[1].fix(1.05)
-    model_instance.t[1].fix(0)
-    opt = pe.SolverFactory('ipopt')
-    return opt.solve(model_instance)
-
+print(data[None]['GB'][None])
+print(data[None]['vg'])
 
 model_instance = se.create_pyomo_instance(model, data)
 
-# Fixing the voltage and angle of slack bus
-model_instance.v[1].fix(1.05)
-model_instance.t[1].fix(0)
+def run_opf(model_instance, data):
+    for bus in data[None]['GB'][None]:  # Fixing the voltage magnitudes at generator buses (slack or PV buses)
+        model_instance.v[bus].fix(data[None]['vg'][bus])
+    model_instance.t[13].fix(0)  # Fixing the angle of slack bus, selecting bus 13 as the slack bus
+    opt = pe.SolverFactory('ipopt')
+    opt.solve(model_instance)
+
 model_instance.pprint()
 
-# run_opf(model, data)
+
+run_opf(model_instance, data)
