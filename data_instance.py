@@ -1,6 +1,7 @@
 # Creating Instance for the Abstract Model
 import pickle
 
+
 # Loading data stored in .pkl files
 def load_sets_params(filename):
     with open('Data/Parameters/' + filename + '.pkl', 'rb') as f:
@@ -15,6 +16,7 @@ param_names = ['gamma', 'mu', 'sigma',
                'gg', 'bb', 'sl',
                'p_g_max', 'p_g_min', 'q_g_max', 'q_g_min',
                'p_a_max', 'p_a_min', 'q_a_max', 'q_a_min']
+# The set 'GB' and corresponding parameters 'vg' is neglected since those are unnecessary for OPF.
 
 # Loading data stored in Data/Parameters
 sets = [load_sets_params(s) for s in set_names]
@@ -39,3 +41,5 @@ create_data_instance_params(instance_data, params, param_names)
 
 with open('Data/Instance/instance_data.pkl', 'wb') as file:  # Exporting the data structure for external reference
     pickle.dump(instance_data, file)
+
+print(instance_data)
