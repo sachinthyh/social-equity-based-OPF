@@ -41,5 +41,3 @@ create_data_instance_params(instance_data, params, param_names)
 
 with open('Data/Instance/instance_data.pkl', 'wb') as file:  # Exporting the data structure for external reference
     pickle.dump(instance_data, file)
-
-print(instance_data)
