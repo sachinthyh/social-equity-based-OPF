@@ -99,11 +99,11 @@ model.q_eqn = pe.Constraint(model.B, rule=q_eqn_rule)
 
 # Line Flow Limits
 def line_limit_rule(model, i, j):
-    return (abs((model.v[i])**2*model.gg[i, i] + model.v[i]*model.v[j]*(model.gg[i, j]*pe.cos(model.t[i] - model.t[j])
-        + model.bb[i, j]*pe.sin(model.t[i] - model.t[j]))) <= model.sl[i, j]/100
+    return (((model.v[i])**2*model.gg[i, i] + model.v[i]*model.v[j]*(model.gg[i, j]*pe.cos(model.t[i] - model.t[j])
+        + model.bb[i, j]*pe.sin(model.t[i] - model.t[j])))**2 <= (model.sl[i, j]/100)**2
     if (i < j) and ((i,j) in model.Y)
-    else abs((model.v[i])**2*model.gg[i, i] + model.v[i]*model.v[j]*(model.gg[j, i]*pe.cos(model.t[i] - model.t[j])
-        + model.bb[j, i]*pe.sin(model.t[i] - model.t[j]))) <= model.sl[j, i]/100
+    else ((model.v[i])**2*model.gg[i, i] + model.v[i]*model.v[j]*(model.gg[j, i]*pe.cos(model.t[i] - model.t[j])
+        + model.bb[j, i]*pe.sin(model.t[i] - model.t[j])))**2 <= (model.sl[j, i]/100)**2
     if (i > j) and ((j,i) in model.Y)
     else pe.Constraint.Skip)
 model.line_limit = pe.Constraint(model.B*model.B, rule=line_limit_rule)

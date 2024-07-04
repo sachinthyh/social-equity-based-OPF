@@ -14,13 +14,13 @@ model_instance = se.create_pyomo_instance(model, data)
 
 def run_opf(model_instance):
     model_instance.t[13].fix(0)  # Fixing the angle of slack bus, selecting bus 13 as the slack bus
-    solver = 'ipopt'
     solver_io = 'nl'
+    solver = 'ipopt'
     opt = SolverFactory(solver, solver_io=solver_io,
-                        options={'max_iter':'5000', 'mu_strategy':'adaptive','adaptive_mu_globalization':'kkt-error',
-                                 'adaptive_mu_kkterror_red_iters':'5', 'adaptive_mu_restore_previous_iterate':'yes',
-                                 'mu_oracle':'probing'})
-    return opt.solve(model_instance, tee=True)
+                        options={'max_iter':'5000', 'mu_strategy':'adaptive',
+                                 'adaptive_mu_globalization':'kkt-error', 'adaptive_mu_kkterror_red_iters':'5',
+                                 'adaptive_mu_restore_previous_iterate':'yes', 'mu_oracle':'probing'})
+    return opt.solve(model_instance)
 
 results = run_opf(model_instance)
 
