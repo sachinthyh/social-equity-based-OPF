@@ -1,6 +1,7 @@
 # Implementation of Social Equity driven OPF
 # importing necessary libraries and packages
 import pyomo.environ as pe
+import math as mt
 
 model = pe.AbstractModel(name="seopf")
 
@@ -97,6 +98,15 @@ def q_eqn_rule(model, i):
     return (left_sum == right_sum if i != 1 else pe.Constraint.Skip)
 model.q_eqn = pe.Constraint(model.B, rule=q_eqn_rule)
 
+# Power Balance
+def p_balance_rule(model):
+    return sum(model.p_gen[b, g] for (b,g) in model.G) >= sum(model.p_a[b, a] for (b,a) in model.A)
+model.p_balance = pe.Constraint(rule=p_balance_rule)
+
+def q_balance_rule(model):
+    return sum(model.q_gen[b, g] for (b,g) in model.G) >= sum(model.q_a[b, a] for (b,a) in model.A)
+model.q_balance = pe.Constraint(rule=q_balance_rule)
+
 # Line Flow Limits
 def line_limit_rule(model, i, j):
     return ((((model.v[i])**2*(-model.gg[i, j]) - model.v[i]*model.v[j]*((-model.gg[i, j])*pe.cos(model.t[i] - model.t[j])
@@ -108,10 +118,15 @@ def line_limit_rule(model, i, j):
     else pe.Constraint.Skip)
 model.line_limit = pe.Constraint(model.B*model.B, rule=line_limit_rule)
 
-# Bus Voltage Limits
+# Bus Limits
 def bus_voltage_limit_rule(model, i):
     return (0.95, model.v[i], 1.05) # Global limits (0.95, 1.05) in p.u.
 model.bus_voltage_limit = pe.Constraint(model.B, rule=bus_voltage_limit_rule)
+
+# Bus Limits
+def bus_angle_limit_rule(model, i):
+    return (-2*mt.pi, model.t[i], 2*mt.pi) # Global limits (0.95, 1.05) in p.u.
+model.bus_angle_limit = pe.Constraint(model.B, rule=bus_angle_limit_rule)
 
 # Generator Dispatch Limits
 def gen_p_limit_rule(model, i, j):
