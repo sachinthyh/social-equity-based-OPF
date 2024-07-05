@@ -21,7 +21,7 @@ instance_data = {None: {
     'bb': {(1,1):-222.5068569, (1,2):35.23484021, (1,4):32.56904638, (1,5):154.7029703, (2,2):-126.9106745,
            (2,3):91.67583425, (3,3):-125.0125013, (3,4):33.336667, (4,4):-99.24238038, (4,5):33.336667,
            (5,5):-188.0396373},
-    'sl': {(1,2):400, (1,4):400, (1,5):400, (2,3):400, (3,4):400, (4,5):240},
+    'sl': {(1,2):400, (1,4):240, (1,5):240, (2,3):240, (3,4):400, (4,5):240},
     'p_g_max': {(1,1):40, (1,2):170, (3,1):520, (4,1):200, (5,1):600},
     'p_g_min': {(1,1):0, (1,2):0, (3,1):0, (4,1):0, (5,1):0},
     'q_g_max': {(1,1):30, (1,2):127.5, (3,1):390, (4,1):150, (5,1):450},
@@ -35,6 +35,7 @@ instance_data = {None: {
 model = se.model
 
 model_instance = se.create_pyomo_instance(model, instance_data)
+model_instance.pprint()
 
 def run_opf(model_instance):
     model_instance.t[1].fix(0)  # Fixing the angle of slack bus, selecting bus 13 as the slack bus
@@ -47,5 +48,3 @@ def run_opf(model_instance):
     return opt.solve(model_instance, tee=True)
 
 results = run_opf(model_instance)
-
-model_instance.pprint()
