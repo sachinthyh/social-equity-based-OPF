@@ -20,8 +20,8 @@ def run_opf(model_instance):
                         options={'max_iter':'5000', 'mu_strategy':'adaptive',
                                  'adaptive_mu_globalization':'kkt-error', 'adaptive_mu_kkterror_red_iters':'5',
                                  'adaptive_mu_restore_previous_iterate':'yes', 'mu_oracle':'probing'})
-    return opt.solve(model_instance)
+    return opt.solve(model_instance, tee=True)
 
 results = run_opf(model_instance)
 
-model_instance.pprint()
+# model_instance.pprint()
