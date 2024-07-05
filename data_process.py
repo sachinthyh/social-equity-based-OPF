@@ -103,7 +103,7 @@ for index, row in df_self_conductance.iterrows():
     if key not in dictselfgg:
         dictselfgg[key] = value
     else:
-        pass
+        dictselfgg[key] += value
 
 df_self_susceptance = df_line_raw.groupby("From")['bb'].sum().reset_index()
 
@@ -120,7 +120,7 @@ for index, row in df_self_susceptance.iterrows():
     if key not in dictselfbb:
         dictselfbb[key] = value
     else:
-        pass
+        dictselfbb[key] += value
 
 # Adding leakage conductance and susceptance values to G(i,i) and B(i,i) elements
 for index, row in df_bus_raw.iterrows():
