@@ -3,7 +3,7 @@
 import pyomo.environ as pe
 import math as mt
 
-model = pe.AbstractModel(name="seopf")
+model = pe.AbstractModel(name="dcopf")
 
 # Declaring sets for variables
 model.B = pe.Set()  # Set of buses
@@ -61,22 +61,19 @@ def p_eqn_rule(model, i):
     left_sum += sum(-(model.p_a[b, a]/100)
                    for (b,a) in model.A
                    if (b == i))
-    right_sum = sum(model.v[i]*model.v[j]*(model.gg[b, j]*pe.cos(model.t[b] - model.t[j])
-                                          + model.bb[b, j]*pe.sin(model.t[b] - model.t[j]))
+    right_sum = sum(model.v[i]*model.v[j]*(model.bb[b, j]*(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b < j) and ((b,j) in model.Y) and (b == i))
-    right_sum += sum(model.v[i]*model.v[j]*(model.gg[j, b]*pe.cos(model.t[b] - model.t[j])
-                                          + model.bb[j, b]*pe.sin(model.t[b] - model.t[j]))
+    right_sum += sum(model.v[i]*model.v[j]*(model.bb[j, b]*(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b > j) and ((j,b) in model.Y) and (b == i))
-    right_sum += sum(model.v[i]*model.v[j]*(model.gg[j, b]*pe.cos(model.t[b] - model.t[j])
-                                          + model.bb[j, b]*pe.sin(model.t[b] - model.t[j]))
+    right_sum += sum(model.v[i]*model.v[j]*(model.bb[j, b]*(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b == j) and ((b,j) in model.Y) and (b == i))
     return (left_sum == right_sum if i !=13 else pe.Constraint.Skip)
 model.p_eqn = pe.Constraint(model.B, rule=p_eqn_rule)
 
-def q_eqn_rule(model, i):
+'''def q_eqn_rule(model, i):
     left_sum = sum(model.q_gen[b, g]/100
                   for (b,g) in model.G
                   if (b == i))
@@ -96,31 +93,29 @@ def q_eqn_rule(model, i):
                                for (b,j) in model.B*model.B
                                if (b == j) and ((b,j) in model.Y) and (b == i))
     return (left_sum == right_sum if i != 13 else pe.Constraint.Skip)
-model.q_eqn = pe.Constraint(model.B, rule=q_eqn_rule)
+model.q_eqn = pe.Constraint(model.B, rule=q_eqn_rule)'''
 
 # Power Balance
 def p_balance_rule(model):
-    return sum(model.p_gen[b, g] for (b,g) in model.G) >= sum(model.p_a[b, a] for (b,a) in model.A)
+    return sum(model.p_gen[b, g] for (b,g) in model.G) == sum(model.p_a[b, a] for (b,a) in model.A)
 model.p_balance = pe.Constraint(rule=p_balance_rule)
 
-def q_balance_rule(model):
+'''def q_balance_rule(model):
     return sum(model.q_gen[b, g] for (b,g) in model.G) >= sum(model.q_a[b, a] for (b,a) in model.A)
-model.q_balance = pe.Constraint(rule=q_balance_rule)
+model.q_balance = pe.Constraint(rule=q_balance_rule)'''
 
 # Line Flow Limits
 def line_limit_rule(model, i, j):
-    return ((((model.v[i])**2*(-model.gg[i, j]) - model.v[i]*model.v[j]*((-model.gg[i, j])*pe.cos(model.t[i] - model.t[j])
-        + (-model.bb[i, j])*pe.sin(model.t[i] - model.t[j])))**2 <= (model.sl[i, j]/100)**2)
+    return (((-model.v[i]*model.v[j]*((-model.bb[i, j])*(model.t[i] - model.t[j])))**2 <= (model.sl[i, j]/100)**2)
     if ((i < j) and ((i,j) in model.Y))
-    else (((model.v[i])**2*(-model.gg[j, i]) - model.v[i]*model.v[j]*((-model.gg[j, i])*pe.cos(model.t[i] - model.t[j])
-        + (-model.bb[j, i])*pe.sin(model.t[i] - model.t[j])))**2 <= (model.sl[j, i]/100)**2)
+    else ((-model.v[i]*model.v[j]*((-model.bb[j, i])*(model.t[i] - model.t[j])))**2 <= (model.sl[j, i]/100)**2)
     if ((i > j) and ((j,i) in model.Y))
     else pe.Constraint.Skip)
 model.line_limit = pe.Constraint(model.B*model.B, rule=line_limit_rule)
 
 # Bus Limits
 def bus_voltage_limit_rule(model, i):
-    return (0.95, model.v[i], 1.05) # Global limits (0.95, 1.05) in p.u.
+    return (1, model.v[i], 1) # Global limits (0.95, 1.05) in p.u.
 model.bus_voltage_limit = pe.Constraint(model.B, rule=bus_voltage_limit_rule)
 
 # Bus Limits
@@ -134,7 +129,7 @@ def gen_p_limit_rule(model, i, j):
 model.gen_p_limit = pe.Constraint(model.G, rule=gen_p_limit_rule)
 
 def gen_q_limit_rule(model, i, j):
-    return (model.q_g_min[i, j], model.q_gen[i, j], model.q_g_max[i, j])
+    return (0, model.q_gen[i, j], 0)
 model.gen_q_limit = pe.Constraint(model.G, rule=gen_q_limit_rule)
 
 # Aggregator Power Limits
@@ -143,7 +138,7 @@ def agg_p_limit_rule(model, i, j):
 model.agg_p_limit = pe.Constraint(model.A, rule=agg_p_limit_rule)
 
 def agg_q_limit_rule(model, i, j):
-    return (model.q_a_min[i, j], model.q_a[i, j], model.q_a_max[i, j])
+    return (0, model.q_a[i, j], 0)
 model.agg_q_limit = pe.Constraint(model.A, rule=agg_q_limit_rule)
 
 
