@@ -1,15 +1,13 @@
 '''
 Created for running the SEOPF model
 '''
-import pyomo.environ as pe
-import dc_opf_model as dc
-import se_opf_model as se
+import dc_opf_model as se
 import data_instance as di
+import pyomo.environ as pe
 from pyomo.opt import SolverFactory
 
 
-se_model = se.model
-dc_model = dc.model
+model = se.model
 data = di.instance_data
 
 model_instance = se.create_pyomo_instance(model, data)
