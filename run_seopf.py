@@ -1,7 +1,7 @@
 '''
 Created for running the SEOPF model
 '''
-import se_opf_model as se
+import dc_opf_model as se
 import data_instance as di
 import pyomo.environ as pe
 from pyomo.opt import SolverFactory
@@ -11,7 +11,6 @@ model = se.model
 data = di.instance_data
 
 model_instance = se.create_pyomo_instance(model, data)
-model_instance.pprint()
 
 def run_opf(model_instance):
     model_instance.t[13].fix(0)  # Fixing the angle of slack bus, selecting bus 13 as the slack bus
