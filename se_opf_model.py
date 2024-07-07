@@ -42,10 +42,11 @@ model.p_a_min = pe.Param(model.A)
 model.q_a_max = pe.Param(model.A)
 model.q_a_min = pe.Param(model.A)  # Power limits of aggregators
 model.vg = pe.Param(model.GB)  # Voltages at generator buses
+model.x = pe.Param(initialize=1)  # Parameter for sensitivity analysis
 
 # Objective Function
 def obj_seopf_rule(model):
-    obj_sum = sum(model.sigma[d, a]*(model.gamma[d, a] * model.p_a[d, a] - 0.5*model.mu[d, a]*(model.p_a[d, a])**2)
+    obj_sum = sum(model.x*model.sigma[d, a]*(model.gamma[d, a] * model.p_a[d, a] - 0.5*model.mu[d, a]*(model.p_a[d, a])**2)
                   for (d, a) in model.A)
     obj_sum -= sum(model.ag[b, g]*(model.p_gen[b, g])**2 + model.bg[b, g]*model.p_gen[b, g] + model.cg[b, g]
                    for (b, g) in model.G)
@@ -73,7 +74,7 @@ def p_eqn_rule(model, i):
                                           + model.bb[j, b]*pe.sin(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b == j) and ((b,j) in model.Y) and (b == i))
-    return (left_sum == right_sum if i !=13 else pe.Constraint.Skip)
+    return (left_sum == right_sum if i !=1 else pe.Constraint.Skip)
 model.p_eqn = pe.Constraint(model.B, rule=p_eqn_rule)
 
 def q_eqn_rule(model, i):
@@ -95,7 +96,7 @@ def q_eqn_rule(model, i):
                                           - model.bb[j, b]*pe.cos(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b == j) and ((b,j) in model.Y) and (b == i))
-    return (left_sum == right_sum if i != 13 else pe.Constraint.Skip)
+    return (left_sum == right_sum if i != 1 else pe.Constraint.Skip)
 model.q_eqn = pe.Constraint(model.B, rule=q_eqn_rule)
 
 # Power Balance
@@ -125,7 +126,7 @@ model.bus_voltage_limit = pe.Constraint(model.B, rule=bus_voltage_limit_rule)
 
 # Bus Limits
 def bus_angle_limit_rule(model, i):
-    return (-2*mt.pi, model.t[i], 2*mt.pi) # Global limits (0.95, 1.05) in p.u.
+    return (-mt.pi/6, model.t[i], mt.pi/6) # Global limits (0.95, 1.05) in p.u.
 model.bus_angle_limit = pe.Constraint(model.B, rule=bus_angle_limit_rule)
 
 # Generator Dispatch Limits
