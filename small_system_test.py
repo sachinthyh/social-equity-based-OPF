@@ -47,4 +47,4 @@ def run_opf(model_instance):
     return opt.solve(model_instance, tee=True)
 
 results = run_opf(model_instance)
-model_instance.pprint()
+# model_instance.pprint()
