@@ -12,19 +12,38 @@ dc_model = dc.model
 se_model = se.model
 data = di.instance_data
 
-dc_instance = se.create_pyomo_instance(dc_model, data)
+dc_instance = dc.create_pyomo_instance(dc_model, data)
 se_instance = se.create_pyomo_instance(se_model, data)
 
 def run_opf(model_instance):
     model_instance.t[13].fix(0)  # Fixing the angle of slack bus, selecting bus 13 as the slack bus
     solver_io = 'nl'
     solver = 'ipopt'
-    opt = SolverFactory(solver, solver_io=solver_io,
-                        options={'max_iter':'5000', 'mu_strategy':'adaptive',
-                                 'adaptive_mu_globalization':'kkt-error', 'adaptive_mu_kkterror_red_iters':'5',
-                                 'adaptive_mu_restore_previous_iterate':'yes', 'mu_oracle':'probing'})
+    opt = SolverFactory(solver, solver_io=solver_io, options={'max_iter':'5000', 'mu_strategy':'adaptive',
+                                                              'adaptive_mu_globalization':'kkt-error',
+                                                              'adaptive_mu_kkterror_red_iters':'5',
+                                                              'adaptive_mu_restore_previous_iterate':'yes',
+                                                              'mu_oracle':'probing'})
     return opt.solve(model_instance, tee=True)
 
-results = run_opf(model_instance)
+def dc_init_run(dc_instance, se_instance):
+    dc_instance.t[13].fix(0)
+    solver_io = 'nl'
+    solver = 'ipopt'
+    optdc = SolverFactory(solver, solver_io=solver_io, options={'max_iter':'5000', 'mu_strategy':'adaptive',
+                                                              'adaptive_mu_globalization':'kkt-error',
+                                                              'adaptive_mu_kkterror_red_iters':'5',
+                                                              'adaptive_mu_restore_previous_iterate':'yes',
+                                                              'mu_oracle':'probing'})
+    optdc.solve(dc_instance)
+    optse = SolverFactory(solver, solver_io=solver_io, options={'max_iter':'5000', 'mu_strategy':'adaptive',
+                                                              'adaptive_mu_globalization':'kkt-error',
+                                                              'adaptive_mu_kkterror_red_iters':'5',
+                                                              'adaptive_mu_restore_previous_iterate':'yes',
+                                                              'mu_oracle':'probing'})
+    '''After adding options for optse, Add code for initializing'''
+    return None  # optse.solve(se_instance)
 
-# model_instance.pprint()
+results = run_opf(dc_instance)
+
+# dc_instance.pprint()
