@@ -73,7 +73,7 @@ def p_eqn_rule(model, i):
                                           + model.bb[j, b]*pe.sin(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b == j) and ((b,j) in model.Y) and (b == i))
-    return (left_sum == right_sum if i !=13 else pe.Constraint.Skip)
+    return (left_sum == right_sum if i !=1 else pe.Constraint.Skip)
 model.p_eqn = pe.Constraint(model.B, rule=p_eqn_rule)
 
 def q_eqn_rule(model, i):
@@ -95,16 +95,16 @@ def q_eqn_rule(model, i):
                                           - model.bb[j, b]*pe.cos(model.t[b] - model.t[j]))
                                for (b,j) in model.B*model.B
                                if (b == j) and ((b,j) in model.Y) and (b == i))
-    return (left_sum == right_sum if i != 13 else pe.Constraint.Skip)
+    return (left_sum == right_sum if i != 1 else pe.Constraint.Skip)
 model.q_eqn = pe.Constraint(model.B, rule=q_eqn_rule)
 
 # Power Balance
 def p_balance_rule(model):
-    return sum(model.p_gen[b, g] for (b,g) in model.G) >= sum(model.p_a[b, a] for (b,a) in model.A)
+    return sum(model.p_gen[b, g] for (b,g) in model.G) - sum(model.p_a[b, a] for (b,a) in model.A) >= 0
 model.p_balance = pe.Constraint(rule=p_balance_rule)
 
 def q_balance_rule(model):
-    return sum(model.q_gen[b, g] for (b,g) in model.G) >= sum(model.q_a[b, a] for (b,a) in model.A)
+    return sum(model.q_gen[b, g] for (b,g) in model.G) - sum(model.q_a[b, a] for (b,a) in model.A) >= 0
 model.q_balance = pe.Constraint(rule=q_balance_rule)
 
 # Line Flow Limits
@@ -125,7 +125,7 @@ model.bus_voltage_limit = pe.Constraint(model.B, rule=bus_voltage_limit_rule)
 
 # Bus Limits
 def bus_angle_limit_rule(model, i):
-    return (-2*mt.pi, model.t[i], 2*mt.pi) # Global limits (0.95, 1.05) in p.u.
+    return (-mt.pi/6, model.t[i], mt.pi/6) # Global limits (0.95, 1.05) in p.u.
 model.bus_angle_limit = pe.Constraint(model.B, rule=bus_angle_limit_rule)
 
 # Generator Dispatch Limits
