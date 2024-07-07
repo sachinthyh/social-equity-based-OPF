@@ -97,7 +97,7 @@ model.q_eqn = pe.Constraint(model.B, rule=q_eqn_rule)'''
 
 # Power Balance
 def p_balance_rule(model):
-    return sum(model.p_gen[b, g] for (b,g) in model.G) == sum(model.p_a[b, a] for (b,a) in model.A)
+    return sum(model.p_gen[b, g] for (b,g) in model.G) >= sum(model.p_a[b, a] for (b,a) in model.A)
 model.p_balance = pe.Constraint(rule=p_balance_rule)
 
 '''def q_balance_rule(model):
