@@ -42,10 +42,11 @@ model.p_a_min = pe.Param(model.A)
 model.q_a_max = pe.Param(model.A)
 model.q_a_min = pe.Param(model.A)  # Power limits of aggregators
 model.vg = pe.Param(model.GB)  # Voltages at generator buses
+model.x = pe.Param(initialize=1)  # Parameter for sensitivity analysis
 
 # Objective Function
 def obj_seopf_rule(model):
-    obj_sum = sum(model.sigma[d, a]*(model.gamma[d, a] * model.p_a[d, a] - 0.5*model.mu[d, a]*(model.p_a[d, a])**2)
+    obj_sum = sum(model.x*model.sigma[d, a]*(model.gamma[d, a] * model.p_a[d, a] - 0.5*model.mu[d, a]*(model.p_a[d, a])**2)
                   for (d, a) in model.A)
     obj_sum -= sum(model.ag[b, g]*(model.p_gen[b, g])**2 + model.bg[b, g]*model.p_gen[b, g] + model.cg[b, g]
                    for (b, g) in model.G)

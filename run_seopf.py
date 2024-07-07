@@ -15,9 +15,6 @@ data = di.instance_data
 dc_instance = dc.create_pyomo_instance(dc_model, data)
 se_instance = se.create_pyomo_instance(se_model, data)
 
-dc_solution = {(v.name, idx): v[idx].value for v in dc_instance.component_objects(pe.Var, active=True) for idx in v}
-print(dc_solution)
-
 
 def run_opf(model_instance):
     model_instance.t[13].fix(0)  # Fixing the angle of slack bus, selecting bus 13 as the slack bus
@@ -56,6 +53,6 @@ def dc_init_opf(dc_instance, se_instance):
     '''After adding options for optse, Add code for initializing'''
     return optse.solve(se_instance, tee=True)
 
-results = dc_init_opf(dc_instance)
+results = run_opf(dc_instance)
 
-se_instance.pprint()
+# dc_instance.pprint()
