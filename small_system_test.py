@@ -3,7 +3,7 @@ import pyomo.environ as pe
 from pyomo.opt import SolverFactory
 
 # IEEE 5-bus System Data (modified)
-instance_data = {None: {
+instance_data_5 = {None: {
     'B': {None: [1,2,3,4,5]},
     'G': {None: [(1,1), (1,2), (3,1), (4,1), (5,1)]},
     'A': {None: [(2,1), (2,2), (3,1), (3,2), (4,1), (4,2), (4,3)]},
@@ -34,7 +34,7 @@ instance_data = {None: {
 
 model = se.model
 
-model_instance = se.create_pyomo_instance(model, instance_data)
+model_instance = se.create_pyomo_instance(model, instance_data_5)
 
 def run_opf(model_instance):
     model_instance.t[1].fix(0)  # Fixing the angle of slack bus, selecting bus 13 as the slack bus
