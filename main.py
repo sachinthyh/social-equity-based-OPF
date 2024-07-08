@@ -5,7 +5,8 @@ import data_instance as di
 import pyomo.environ as pe
 import numpy as np
 import matplotlib.pyplot as plt
-
+from mpl_toolkits.mplot3d import Axes3D
+plt.rcParams['text.usetex'] = True
 
 dc_model = dc.model
 se_model = se.model
@@ -25,6 +26,7 @@ c_5 = np.array([se_instance.cg[b, g] for (b,g) in se_instance.G])
 gamma_5 = np.array([se_instance.gamma[a, g] for (a,g) in se_instance.A])
 mu_5 = np.array([se_instance.mu[a, g] for (a,g) in se_instance.A])
 sigma_5 = np.array([se_instance.sigma[a, g] for (a,g) in se_instance.A])
+p_a_max_5 = np.array([se_instance.p_a_max[a, g] for (a,g) in se_instance.A])
 
 a_24 = np.array([dc_instance.ag[b, g] for (b,g) in dc_instance.G])
 b_24 = np.array([dc_instance.bg[b, g] for (b,g) in dc_instance.G])
@@ -38,17 +40,18 @@ results_5 = ropf.run_opf(se_instance)
 results_24 = ropf.run_opf(dc_instance)
 
 def calculate_cost_utility(instance, a, b, c, gamma, mu):
-    p_gen = np.array([instance.p_gen[b, g].value for (b,g) in instance.G])
-    p_a = np.array([instance.p_a[b, g].value for (b,g) in instance.A])
+    p_gen = np.array([instance.p_gen[x, y].value for (x,y) in instance.G])
+    p_a = np.array([instance.p_a[x, y].value for (x,y) in instance.A])
     cost = a**2*p_gen + b*p_gen + c
     utility = gamma*p_a - 0.5*mu*p_a**2
     return p_gen, p_a, cost, utility
 
 
-def calc_sensitivity_total(model, data, type, percent_from, percent_to, a, b, c, gamma, mu):
+def calc_sensitivity(model, data, type, percent_from, percent_to, a, b, c, gamma, mu):
     percent = []
     cost = []
     utility = []
+    aggr_utility = {}
     for i in range(percent_from, percent_to + 1, 2):
         if type == 'dc':
             instance = dc.create_pyomo_instance(model, data)
@@ -62,16 +65,50 @@ def calc_sensitivity_total(model, data, type, percent_from, percent_to, a, b, c,
         cost.append(sum(cost_utility[2]))
         utility.append(sum(cost_utility[3]))
         percent.append(i)
-    return percent, cost, utility
+        aggr_utility[i] = np.array([instance.p_a[x, y].value for (x,y) in instance.A])
+    return percent, cost, utility, aggr_utility
 
-bus5_total_sensitivity = calc_sensitivity_total(se_model, data_5, 'ac', 10, 200, a_5, b_5, c_5, gamma_5, mu_5)
+bus5_sensitivity = calc_sensitivity(se_model, data_5, 'ac', 10, 150, a_5, b_5, c_5, gamma_5, mu_5)
 
+individual_aggr_power_original = bus5_sensitivity[3]
+individual_aggr_utility_original = {}
+for key in individual_aggr_power_original:
+    aggr_p = individual_aggr_power_original[key]
+    individual_aggr_utility_original[key] = gamma_5*aggr_p - 0.5*mu_5*aggr_p**2
 
-plt.plot(bus5_total_sensitivity[0], bus5_total_sensitivity[1])
-plt.show()
+individual_aggr_utility_max = gamma_5*p_a_max_5 - 0.5*mu_5*p_a_max_5**2
+individual_aggr_utility_normalized = {}
 
-plt.plot(bus5_total_sensitivity[0], bus5_total_sensitivity[2])
-plt.show()
+for key in individual_aggr_utility_original:
+    individual_aggr_utility_normalized[key] = individual_aggr_utility_original[key]/individual_aggr_utility_max*100
 
-plt.plot(bus5_total_sensitivity[0], np.array(bus5_total_sensitivity[2])-np.array(bus5_total_sensitivity[1]))
-plt.show()
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+for key, values in individual_aggr_utility_normalized.items():
+    keys = np.full(values.shape, key)
+    ax.bar3d(keys, sigma_5, np.zeros_like(values), 1, 1, values, alpha=0.6, shade=True, color='lightgreen')
+
+ax.set_xlabel(r'\%$\mathbf{\sigma}$', fontsize=16)
+ax.set_ylabel('SES of Aggregator')
+ax.set_zlabel(r'Normalized Utility ($\times 10^{-2}$)', fontsize=8)
+plt.savefig('Data/Results/indi_aggr_utility.pdf')
+plt.clf()
+
+plt.plot(bus5_sensitivity[0], bus5_sensitivity[1])  # Total cost
+plt.xlabel(r'\%$\mathbf{\sigma}$', fontsize=16)
+plt.ylabel(r"Total Cost (\$/h)", fontsize=16)
+plt.savefig('Data/Results/total_cost_sens.pdf')
+plt.clf()
+
+plt.plot(bus5_sensitivity[0], bus5_sensitivity[2])  # Total utility
+plt.xlabel(r'\%$\mathbf{\sigma}$', fontsize=16)
+plt.ylabel(r"Total Utility (\$/h)", fontsize=16)
+plt.savefig('Data/Results/total_utility_sens.pdf')
+plt.clf()
+
+plt.plot(bus5_sensitivity[0], np.array(bus5_sensitivity[2])-np.array(bus5_sensitivity[1]))  # Social Welfare
+plt.xlabel(r'\%$\mathbf{\sigma}$', fontsize=16)
+plt.ylabel(r"Social Welfare (\$/h)", fontsize=16)
+plt.savefig('Data/Results/social_welfare_sens.pdf')
+plt.clf()
