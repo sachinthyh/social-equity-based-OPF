@@ -44,7 +44,6 @@ def calculate_cost_utility(instance, a, b, c, gamma, mu):
     utility = gamma*p_a - 0.5*mu*p_a**2
     return p_gen, p_a, cost, utility
 
-a = calculate_cost_utility(se_instance, a_5, b_5, c_5, gamma_5, mu_5)
 
 def calc_sensitivity_total(model, data, type, percent_from, percent_to, a, b, c, gamma, mu):
     percent = []
