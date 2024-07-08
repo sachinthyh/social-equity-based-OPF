@@ -57,4 +57,3 @@ def dc_init_opf(dc_instance, se_instance):
     '''After adding options for optse, Add code for initializing'''
     return optse.solve(se_instance, tee=True)
 
-

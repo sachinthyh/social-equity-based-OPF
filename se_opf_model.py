@@ -42,7 +42,7 @@ model.p_a_min = pe.Param(model.A)
 model.q_a_max = pe.Param(model.A)
 model.q_a_min = pe.Param(model.A)  # Power limits of aggregators
 model.vg = pe.Param(model.GB)  # Voltages at generator buses
-model.x = pe.Param(initialize=1)  # Parameter for sensitivity analysis
+model.x = pe.Param(initialize=1, mutable=True)  # Parameter for sensitivity analysis
 
 # Objective Function
 def obj_seopf_rule(model):
