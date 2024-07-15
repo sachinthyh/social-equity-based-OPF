@@ -46,6 +46,13 @@ def calculate_cost_utility(instance, a, b, c, gamma, mu):
     utility = gamma*p_a - 0.5*mu*p_a**2
     return p_gen, p_a, cost, utility
 
+default_result_5_bus = calculate_cost_utility(se_instance, a_5, b_5, c_5, gamma_5, mu_5)
+default_result_24_bus = calculate_cost_utility(dc_instance, a_24, b_24, c_24, gamma_24, mu_24)
+original_5_utility = sum(default_result_5_bus[3])
+original_5_cost = sum(default_result_5_bus[2])
+original_24_utility = sum(default_result_24_bus[3])
+original_24_cost = sum(default_result_24_bus[2])
+print('(5utility, 5cost, 24utility, 24cost) = ',original_5_utility, original_5_cost, original_24_utility, original_24_cost)
 
 def calc_sensitivity(model, data, type, percent_from, percent_to, a, b, c, gamma, mu):
     percent = []
@@ -89,26 +96,27 @@ for key, values in individual_aggr_utility_normalized.items():
     keys = np.full(values.shape, key)
     ax.bar3d(keys, sigma_5, np.zeros_like(values), 1, 1, values, alpha=0.6, shade=True, color='lightgreen')
 
-ax.set_xlabel(r'\%$\mathbf{\sigma}$', fontsize=16)
-ax.set_ylabel('SES of Aggregator')
-ax.set_zlabel(r'Normalized Utility ($\times 10^{-2}$)', fontsize=8)
+ax.set_xlabel(r'Percentage SES', fontsize=12)
+ax.set_ylabel(r'SES of Each Aggregator', fontsize=12)
+ax.set_zlabel(r'Normalized Satisfaction ($\times 10^{-2}$)', fontsize=10)
+ax.set_yticks(sigma_5)
 plt.savefig('Data/Results/indi_aggr_utility.pdf')
 plt.clf()
 
-plt.plot(bus5_sensitivity[0], bus5_sensitivity[1])  # Total cost
-plt.xlabel(r'\%$\mathbf{\sigma}$', fontsize=16)
-plt.ylabel(r"Total Cost (\$/h)", fontsize=16)
+plt.plot(bus5_sensitivity[0], bus5_sensitivity[1], color='orangered')  # Total cost
+plt.xlabel(r'Percentage SES', fontsize=16)
+plt.ylabel(r"Total Generation Cost (\$/h)", fontsize=16)
 plt.savefig('Data/Results/total_cost_sens.pdf')
 plt.clf()
 
-plt.plot(bus5_sensitivity[0], bus5_sensitivity[2])  # Total utility
-plt.xlabel(r'\%$\mathbf{\sigma}$', fontsize=16)
-plt.ylabel(r"Total Utility (\$/h)", fontsize=16)
+plt.plot(bus5_sensitivity[0], bus5_sensitivity[2], color='springgreen')  # Total utility
+plt.xlabel(r'Percentage SES', fontsize=16)
+plt.ylabel(r"Total Satisfaction (\$/h)", fontsize=16)
 plt.savefig('Data/Results/total_utility_sens.pdf')
 plt.clf()
 
-plt.plot(bus5_sensitivity[0], np.array(bus5_sensitivity[2])-np.array(bus5_sensitivity[1]))  # Social Welfare
-plt.xlabel(r'\%$\mathbf{\sigma}$', fontsize=16)
+plt.plot(bus5_sensitivity[0], np.array(bus5_sensitivity[2])-np.array(bus5_sensitivity[1]), color='blueviolet')  # Social Welfare
+plt.xlabel(r'Percentage SES', fontsize=16)
 plt.ylabel(r"Social Welfare (\$/h)", fontsize=16)
 plt.savefig('Data/Results/social_welfare_sens.pdf')
 plt.clf()
